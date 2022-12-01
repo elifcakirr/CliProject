@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator, Share, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator, Share, Dimensions, Alert, Platform } from 'react-native';
 
 import axios from 'axios';
 import { Card, Menu, Snackbar } from 'react-native-paper';
@@ -23,7 +23,7 @@ function HistoryAuditScreen() {
         const response = await axios.get('https://test.theauditer.com/api/Audit/GetAuditPlanPdfReport?auditId=65',
             {
                 'headers': {
-                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3NDBhNDZkOS00NDY1LTRlMTktYjZhNC1lOTA3NTY2MjM1MzEiLCJFbWFpbCI6ImNleWh1bi5rdWN1a2FsaUBmb3JuYXhzb2Z0d2FyZS5jb20iLCJUb2tlbiI6IjNlYjdiNTg2LWIxZjEtNDZkMi1hOWI5LWYyNmUwOTUzMGM4YyIsIlJlZnJlc2hJZCI6IjlmNGUzZGY1LTg0OTAtNGEyZi05ZDI2LTU0NzI3N2E0ZjlhZiIsImV4cCI6MTY2OTg4Mzc3NX0.EsvFVJy1iyMwUVUnW6zcxodi2ACdr-97z58whTImY-I'
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMGRlMzBkYy1kYWJkLTRhZTEtOWVhOC05NmUwYzVjMmY2ZWUiLCJFbWFpbCI6ImNleWh1bi5rdWN1a2FsaUBmb3JuYXhzb2Z0d2FyZS5jb20iLCJUb2tlbiI6IjNlYjdiNTg2LWIxZjEtNDZkMi1hOWI5LWYyNmUwOTUzMGM4YyIsIlJlZnJlc2hJZCI6IjNkMDU0NDJmLWFlYjEtNDY0OS05MDJkLTFmNGFjNjNkYzA4MCIsImV4cCI6MTY2OTk3MTc2OH0.bslKkY6Z-GRfnqZabL7LS7dIipOBiDru2DPirfXDMqc'
                 },
                 responseType: 'blob',
 
@@ -36,14 +36,16 @@ function HistoryAuditScreen() {
         const fr = new FileReader();
 
         fr.onload = async () => {
-            const fileUri = RNFS.ExternalDirectoryPath + '/5.pdf';
-            setUri(fileUri)
+            const fileUri = (Platform.OS === "android" ? RNFS.ExternalDirectoryPath : RNFS.LibraryDirectoryPath) + '/5.pdf';
+
 
             await RNFS.writeFile(fileUri, fr.result.split(',')[1], "base64").finally(() => {
                 setIsLoading(false)
             })
             setBase64(fr.result.split(',')[1]);
+            setUri(fileUri)
         }
+
         fr.readAsDataURL(response.data)
         setIsMenuShow(false)
 
@@ -53,7 +55,7 @@ function HistoryAuditScreen() {
         if (isSaved == true) {
             setIsDownload(true)
         }
-        console.log(uri);
+
         navigation.navigate("Pdf", { url: uri })
 
     }
@@ -67,9 +69,6 @@ function HistoryAuditScreen() {
                 url: "data:application/pdf;base64," + base64,
 
             })
-
-            console.log(base64);
-            RNFS.unlink(uri)
         }
     }
 
@@ -82,7 +81,7 @@ function HistoryAuditScreen() {
             const list = await axios.get("http://test.theauditer.com/api/Audit/GetCompletedAudits?locationId=6",
                 {
                     'headers': {
-                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3NDBhNDZkOS00NDY1LTRlMTktYjZhNC1lOTA3NTY2MjM1MzEiLCJFbWFpbCI6ImNleWh1bi5rdWN1a2FsaUBmb3JuYXhzb2Z0d2FyZS5jb20iLCJUb2tlbiI6IjNlYjdiNTg2LWIxZjEtNDZkMi1hOWI5LWYyNmUwOTUzMGM4YyIsIlJlZnJlc2hJZCI6IjlmNGUzZGY1LTg0OTAtNGEyZi05ZDI2LTU0NzI3N2E0ZjlhZiIsImV4cCI6MTY2OTg4Mzc3NX0.EsvFVJy1iyMwUVUnW6zcxodi2ACdr-97z58whTImY-I'
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMGRlMzBkYy1kYWJkLTRhZTEtOWVhOC05NmUwYzVjMmY2ZWUiLCJFbWFpbCI6ImNleWh1bi5rdWN1a2FsaUBmb3JuYXhzb2Z0d2FyZS5jb20iLCJUb2tlbiI6IjNlYjdiNTg2LWIxZjEtNDZkMi1hOWI5LWYyNmUwOTUzMGM4YyIsIlJlZnJlc2hJZCI6IjNkMDU0NDJmLWFlYjEtNDY0OS05MDJkLTFmNGFjNjNkYzA4MCIsImV4cCI6MTY2OTk3MTc2OH0.bslKkY6Z-GRfnqZabL7LS7dIipOBiDru2DPirfXDMqc'
                     }
                 })
             setList(list.data.Data)
@@ -144,14 +143,6 @@ function HistoryAuditScreen() {
                                     <Menu.Item leadingIcon={'share-variant'} title="Share" onPress={sharePdf}></Menu.Item>
                                 </Menu>
                             </View>
-
-                            {/* <TouchableOpacity style={{ backgroundColor: "#cae2ff", borderRadius: 5, padding: 5, flexDirection: "row" }}>
-                                <Text >Paylaş</Text>
-                                <Icon name='share'></Icon>
-
-                            </TouchableOpacity> */}
-                            {/* <Button icon='share-variant' labelStyle={{ fontSize: 20, flex: 1 }} onPress={sharePdf} buttonColor='#cae2ff'>
-                                <Text style={{ fontSize: 15 }}>Paylaş</Text></Button> */}
 
                         </View>
                     </View>

@@ -4,7 +4,7 @@ import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Pdf from 'react-native-pdf';
 
 function PdfScreen({ route }) {
-    console.log(route);
+    console.log("file://" + route.params.url);
     return (
         <View style={styles.pdfView}>
             <Pdf style={styles.pdf} source={{ uri: "file://" + route.params.url }} />
